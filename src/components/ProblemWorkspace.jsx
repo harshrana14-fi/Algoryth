@@ -20,7 +20,7 @@ export default function ProblemWorkspace({ problem }) {
             <div className="text-xs text-zinc-500 dark:text-zinc-400">
               {problem.id}
             </div>
-            <h1 className="mt-1 text-xl font-semibold tracking-tight">
+            <h1 className="mt-1 text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
               {problem.title}
             </h1>
           </div>
@@ -61,25 +61,25 @@ export default function ProblemWorkspace({ problem }) {
           {problem.statement}
         </p>
 
-        <h3 className="mt-6 text-sm font-semibold">Constraints</h3>
+        <h3 className="mt-6 text-sm font-semibold text-zinc-900 dark:text-zinc-50">Constraints</h3>
         <ul className="mt-2 list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-300">
           {problem.constraints.map((c) => (
             <li key={c}>{c}</li>
           ))}
         </ul>
 
-        <h3 className="mt-6 text-sm font-semibold">Examples</h3>
+        <h3 className="mt-6 text-sm font-semibold text-zinc-900 dark:text-zinc-50">Examples</h3>
         <div className="mt-2 grid gap-3">
           {problem.examples.map((ex, i) => (
             <div
               key={`${problem.id}-ex-${i}`}
               className="rounded-xl border border-black/10 bg-zinc-50 p-4 text-sm dark:border-white/10 dark:bg-zinc-950"
             >
-              <div className="font-medium">Input</div>
+              <div className="font-medium text-zinc-900 dark:text-zinc-50">Input</div>
               <pre className="mt-1 overflow-auto whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
                 {ex.input}
               </pre>
-              <div className="mt-3 font-medium">Output</div>
+              <div className="mt-3 font-medium text-zinc-900 dark:text-zinc-50">Output</div>
               <pre className="mt-1 overflow-auto whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
                 {ex.output}
               </pre>

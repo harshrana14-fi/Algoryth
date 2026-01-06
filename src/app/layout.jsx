@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import ThemeToggle from "../components/ThemeToggle";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,14 +20,30 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-zinc-100 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-50`}
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const storedTheme = localStorage.getItem('theme');
+                const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = storedTheme || (systemPrefersDark ? 'dark' : 'light');
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              })();
+            `,
+          }}
+        />
         <header className="sticky top-0 z-20 border-b border-black/10 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-zinc-950/80">
           <div className="mx-auto w-full max-w-7xl px-6">
             <div className="flex items-center gap-4 py-3">
-              <Link href="/" className="text-lg font-semibold tracking-tight">
+              <Link href="/" className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
                 Algoryth
               </Link>
 
@@ -39,6 +56,7 @@ export default function RootLayout({ children }) {
               </div>
 
               <div className="ml-auto flex items-center gap-2">
+                <ThemeToggle />
                 <button
                   type="button"
                   className="inline-flex h-9 items-center justify-center rounded-full bg-black px-4 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"

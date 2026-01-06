@@ -19,7 +19,7 @@ export default function ProblemsPage() {
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Problems</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             Browse problems. This uses mock data + API routes.
           </p>

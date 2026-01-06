@@ -18,11 +18,35 @@ export default function CodeEditor({
   }, [initialCode]);
 
   useEffect(() => {
+    const updateTheme = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "vs-dark" : "vs");
+    };
+
+    // Initial theme check
+    updateTheme();
+
+    // Watch for changes to the dark class on document element
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    // Also listen to system preference changes as fallback
     const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    const update = () => setTheme(mq?.matches ? "vs-dark" : "vs");
-    update();
-    mq?.addEventListener?.("change", update);
-    return () => mq?.removeEventListener?.("change", update);
+    const handleSystemChange = () => {
+      // Only update if there's no stored theme preference
+      if (!localStorage.getItem("theme")) {
+        updateTheme();
+      }
+    };
+    mq?.addEventListener?.("change", handleSystemChange);
+
+    return () => {
+      observer.disconnect();
+      mq?.removeEventListener?.("change", handleSystemChange);
+    };
   }, []);
 
   const editorOptions = useMemo(
