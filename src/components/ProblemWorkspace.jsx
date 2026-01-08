@@ -45,7 +45,7 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
         body: JSON.stringify({
           problemId: problem.id,
           code: code || starterCode,
-          status: "Accepted",
+          status: "Accepted", // Mock accepted
         }),
       });
       if (response.ok) {
@@ -114,13 +114,14 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
               <div className="font-medium text-[#2b2116] dark:text-[#f6ede0]">
                 Input
               </div>
-              <pre className="mt-1 whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
+              <pre className="mt-1 overflow-auto whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
                 {ex.input}
               </pre>
+
               <div className="mt-3 font-medium text-[#2b2116] dark:text-[#f6ede0]">
                 Output
               </div>
-              <pre className="mt-1 whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
+              <pre className="mt-1 overflow-auto whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
                 {ex.output}
               </pre>
             </div>
@@ -137,21 +138,21 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
       minPrimary={260}
       minSecondary={220}
       storageKey={`algoryth.split.editor.${problem.slug}`}
-      className="h-full"
+      className="h-215 lg:h-full"
       primary={
         <CodeEditor
           initialLanguage={language}
           initialCode={code || starterCode}
           onChange={setCode}
           onLanguageChange={setLanguage}
+          onRun={handleRun}
+          onSubmit={handleSubmit}
         />
       }
       secondary={
         <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#e0d5c2] bg-[#fff8ed] dark:border-[#3c3347] dark:bg-[#211d27]">
           <div className="border-b border-[#e0d5c2] bg-[#f2e3cc] dark:border-[#3c3347] dark:bg-[#292331]">
-            <div className="px-4 py-2 text-xs font-semibold">
-              Test Result
-            </div>
+            <div className="px-4 py-2 text-xs font-semibold">Test Result</div>
           </div>
           <div className="flex-1 overflow-auto px-4 py-5 text-center text-sm text-[#8a7a67] dark:text-[#b5a59c]">
             {lastSubmissionStatus || "You must run your code first."}
@@ -177,7 +178,6 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
             onClick={onPrev}
             disabled={!onPrev}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-[#fff8ed] text-sm hover:bg-[#f2e3cc] disabled:opacity-50"
-            aria-label="Previous"
           >
             {"<"}
           </button>
@@ -187,29 +187,8 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
             onClick={onNext}
             disabled={!onNext}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-[#fff8ed] text-sm hover:bg-[#f2e3cc] disabled:opacity-50"
-            aria-label="Next"
           >
             {">"}
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleRun}
-            disabled={isRunning || isSubmitting}
-            className="inline-flex h-9 items-center justify-center rounded-full bg-[#d69a44] px-4 text-sm font-medium hover:bg-[#c4852c] disabled:opacity-50"
-          >
-            {isRunning ? "Running..." : "Run"}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isRunning || isSubmitting}
-            className="inline-flex h-9 items-center justify-center rounded-full bg-[#d69a44] px-4 text-sm font-medium hover:bg-[#c4852c] disabled:opacity-50"
-          >
-            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>
