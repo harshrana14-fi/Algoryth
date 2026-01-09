@@ -13,6 +13,7 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmissionStatus, setLastSubmissionStatus] = useState(null);
   const [timerRunning, setTimerRunning] = useState(true);
+  const [inputError, setInputError] = useState(null);
 
   const starterCode = useMemo(
     () =>
@@ -20,28 +21,49 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
     [problem.title]
   );
 
+
+  const isCodeEmpty =
+    !code || code.trim().length === 0 || code.trim() === starterCode.trim();
+
+  const validateBeforeRun = () => {
+    if (isCodeEmpty) {
+      setInputError(
+        "Please write some code before running. Starter code alone is not sufficient."
+      );
+      return false;
+    }
+    setInputError(null);
+    return true;
+  };
+
+
   const handleRun = async () => {
+    if (!validateBeforeRun()) return;
+
     setIsRunning(true);
+    setLastSubmissionStatus(null);
+
     try {
       const response = await fetch("/api/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: code || starterCode,
-          language,
-        }),
+        body: JSON.stringify({ code, language }),
       });
       const result = await response.json();
       setLastSubmissionStatus(`${result.status} in ${result.language}`);
     } catch {
       setLastSubmissionStatus("Execution Error");
     }
+
     setIsRunning(false);
   };
 
   const handleSubmit = async () => {
-    setTimerRunning(false); // ✅ stop timer on submit
+    if (!validateBeforeRun()) return;
+
+    setTimerRunning(false); 
     setIsSubmitting(true);
+    setLastSubmissionStatus(null);
 
     try {
       const response = await fetch("/api/submissions", {
@@ -49,9 +71,8 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           problemId: problem.id,
-          code: code || starterCode,
-
-          status: "Accepted", // Mock accepted
+          code,
+          status: "Accepted",
         }),
       });
 
@@ -59,16 +80,15 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
         response.ok ? "Accepted" : "Wrong Answer"
       );
     } catch {
-      setLastSubmissionStatus("Error");
+      setLastSubmissionStatus("Submission Error");
     }
 
     setIsSubmitting(false);
   };
 
-  /* ---------------- LEFT PANEL (UNCHANGED) ---------------- */
+
   const leftPanel = (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#e0d5c2] bg-[#fff8ed] dark:border-[#3c3347] dark:bg-[#211d27]">
-      {/* Problem header, tags, description, constraints, examples */}
       <div className="border-b border-[#e0d5c2] bg-[#f2e3cc] px-5 py-4 dark:border-[#3c3347] dark:bg-[#292331]">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -111,14 +131,13 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
               <div className="font-medium text-[#2b2116] dark:text-[#f6ede0]">
                 Input
               </div>
-
               <pre className="mt-1 overflow-auto whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
                 {ex.input}
               </pre>
+
               <div className="mt-3 font-medium text-[#2b2116] dark:text-[#f6ede0]">
                 Output
               </div>
-
               <pre className="mt-1 overflow-auto whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
                 {ex.output}
               </pre>
@@ -129,7 +148,7 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
     </div>
   );
 
-  /* ---------------- RIGHT PANEL (UNCHANGED) ---------------- */
+
   const rightPanel = (
     <SplitPane
       direction="vertical"
@@ -142,19 +161,29 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
         <CodeEditor
           initialLanguage={language}
           initialCode={code || starterCode}
-          onChange={setCode}
+          onChange={(val) => {
+            setCode(val);
+            setInputError(null);
+          }}
           onLanguageChange={setLanguage}
-
-          onRun={handleRun}        
-          onSubmit={handleSubmit}  
+          onRun={handleRun}
+          onSubmit={handleSubmit}
+          runDisabled={isRunning || isCodeEmpty}
+          submitDisabled={isSubmitting || isCodeEmpty}
         />
       }
       secondary={
-        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border bg-[#fff8ed] dark:bg-[#211d27]">
-          <div className="border-b px-4 py-2 text-xs font-semibold">
+        <div className="flex h-full flex-col rounded-2xl border border-[#e0d5c2] bg-[#fff8ed] dark:border-[#3c3347] dark:bg-[#211d27]">
+          <div className="border-b border-[#e0d5c2] bg-[#f2e3cc] px-4 py-2 text-xs font-semibold dark:border-[#3c3347] dark:bg-[#292331]">
             Test Result
           </div>
-          <div className="flex-1 overflow-auto px-4 pt-3 text-center text-sm">
+
+          <div className="flex-1 overflow-auto px-4 pt-4 text-center text-sm text-[#8a7a67] dark:text-[#b5a59c]">
+            {inputError && (
+              <div className="mb-3 rounded-lg bg-red-100 px-3 py-2 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                {inputError}
+              </div>
+            )}
             {lastSubmissionStatus || "You must run your code first."}
           </div>
         </div>
@@ -162,10 +191,10 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
     />
   );
 
+
   return (
     <section className="grid gap-4">
-      {/* HEADER */}
-      <div className="flex items-center justify-between gap-3 rounded-2xl border bg-[#fff8ed] px-4 py-3 dark:bg-[#211d27]">
+      <div className="flex items-center justify-between rounded-2xl border border-[#e0d5c2] bg-[#fff8ed] px-4 py-3 dark:border-[#3c3347] dark:bg-[#211d27]">
         <div className="flex items-center gap-2">
           <Link
             href="/problems"
@@ -173,34 +202,20 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
           >
             Problems
           </Link>
-          <button
-            type="button"
-            onClick={onPrev}
-            disabled={!onPrev}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#deceb7] bg-[#fff8ed] text-sm text-[#5d5245] hover:bg-[#f2e3cc] disabled:opacity-50 dark:border-[#40364f] dark:bg-[#221d2b] dark:text-[#d7ccbe] dark:hover:bg-[#2d2535]"
-            aria-label="Previous"
-          >
-            {"<"}
+          <button onClick={onPrev} disabled={!onPrev}>{"<"}</button>
+          <button onClick={onNext} disabled={!onNext}>{">"}</button>
+
+          <ProblemTimer running={timerRunning} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button onClick={handleRun} disabled={isRunning || isSubmitting}>
+            {isRunning ? "Running..." : "Run"}
           </button>
-          <button
-            type="button"
-            onClick={onNext}
-            disabled={!onNext}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#deceb7] bg-[#fff8ed] text-sm text-[#5d5245] hover:bg-[#f2e3cc] disabled:opacity-50 dark:border-[#40364f] dark:bg-[#221d2b] dark:text-[#d7ccbe] dark:hover:bg-[#2d2535]"
-            aria-label="Next"
-          >
-            {">"}
+          <button onClick={handleSubmit} disabled={isRunning || isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </div>
-<div className="flex items-center gap-2">
-  <button onClick={handleRun} disabled={isRunning || isSubmitting}>
-    {isRunning ? "Running..." : "Run"}
-  </button>
-  <button onClick={handleSubmit} disabled={isRunning || isSubmitting}>
-    {isSubmitting ? "Submitting..." : "Submit"}
-  </button>
-</div>
-
       </div>
 
       <div className="hidden lg:block h-225">
