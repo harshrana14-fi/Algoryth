@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import CodeEditor from "./CodeEditor";
 import SplitPane from "./SplitPane";
+import ProblemTimer from "./ProblemTimer";
 
 export default function ProblemWorkspace({ problem, onNext, onPrev }) {
   const [code, setCode] = useState("");
@@ -11,8 +12,7 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
   const [isRunning, setIsRunning] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmissionStatus, setLastSubmissionStatus] = useState(null);
-
-  // 🔴 NEW — validation & error state (Issue #53)
+  const [timerRunning, setTimerRunning] = useState(true);
   const [inputError, setInputError] = useState(null);
 
   const starterCode = useMemo(
@@ -21,7 +21,6 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
     [problem.title]
   );
 
-  /* ===================== VALIDATION ===================== */
 
   const isCodeEmpty =
     !code || code.trim().length === 0 || code.trim() === starterCode.trim();
@@ -37,7 +36,6 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
     return true;
   };
 
-  /* ===================== ACTIONS ===================== */
 
   const handleRun = async () => {
     if (!validateBeforeRun()) return;
@@ -49,10 +47,7 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
       const response = await fetch("/api/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          language,
-        }),
+        body: JSON.stringify({ code, language }),
       });
       const result = await response.json();
       setLastSubmissionStatus(`${result.status} in ${result.language}`);
@@ -66,6 +61,7 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
   const handleSubmit = async () => {
     if (!validateBeforeRun()) return;
 
+    setTimerRunning(false); 
     setIsSubmitting(true);
     setLastSubmissionStatus(null);
 
@@ -76,15 +72,13 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
         body: JSON.stringify({
           problemId: problem.id,
           code,
-          status: "Accepted", // Mock accepted
+          status: "Accepted", // mock
         }),
       });
 
-      if (response.ok) {
-        setLastSubmissionStatus("Accepted");
-      } else {
-        setLastSubmissionStatus("Wrong Answer");
-      }
+      setLastSubmissionStatus(
+        response.ok ? "Accepted" : "Wrong Answer"
+      );
     } catch {
       setLastSubmissionStatus("Submission Error");
     }
@@ -92,7 +86,6 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
     setIsSubmitting(false);
   };
 
-  /* ===================== PANELS ===================== */
 
   const leftPanel = (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#e0d5c2] bg-[#fff8ed] dark:border-[#3c3347] dark:bg-[#211d27]">
@@ -138,20 +131,15 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
               <div className="font-medium text-[#2b2116] dark:text-[#f6ede0]">
                 Input
               </div>
-              <pre className="mt-1 whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
+              <pre className="mt-1 overflow-auto whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
                 {ex.input}
               </pre>
+
               <div className="mt-3 font-medium text-[#2b2116] dark:text-[#f6ede0]">
                 Output
               </div>
-              <pre className="mt-1 whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
-                {ex.output}
-              </pre>
-              <div className="mt-3 font-medium text-[#2b2116] dark:text-[#f6ede0]">
-                Explaination
-              </div>
               <pre className="mt-1 overflow-auto whitespace-pre-wrap text-[#5d5245] dark:text-[#d7ccbe]">
-                {ex.explaination}
+                {ex.output}
               </pre>
             </div>
           ))}
@@ -159,6 +147,7 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
       </article>
     </div>
   );
+
 
   const rightPanel = (
     <SplitPane
@@ -195,7 +184,6 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
                 {inputError}
               </div>
             )}
-
             {lastSubmissionStatus || "You must run your code first."}
           </div>
         </div>
@@ -203,7 +191,6 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
     />
   );
 
-  /* ===================== LAYOUT ===================== */
 
   return (
     <section className="grid gap-4">
@@ -215,11 +202,18 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
           >
             Problems
           </Link>
-          <button onClick={onPrev} disabled={!onPrev}>
-            {"<"}
+          <button onClick={onPrev} disabled={!onPrev}>{"<"}</button>
+          <button onClick={onNext} disabled={!onNext}>{">"}</button>
+
+          <ProblemTimer running={timerRunning} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button onClick={handleRun} disabled={isRunning || isSubmitting}>
+            {isRunning ? "Running..." : "Run"}
           </button>
-          <button onClick={onNext} disabled={!onNext}>
-            {">"}
+          <button onClick={handleSubmit} disabled={isRunning || isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>
