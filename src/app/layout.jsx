@@ -89,12 +89,20 @@ export default function RootLayout({ children }) {
               >
                 Problems
               </Link>
-              <span className="rounded-full px-3 py-2 text-[#b5a08a] dark:text-[#7f748a]">
-                Contests
-              </span>
-              <span className="rounded-full px-3 py-2 text-[#b5a08a] dark:text-[#7f748a]">
-                Rating
-              </span>
+              <Link
+              href="/contests"
+              className="rounded-full px-3 py-2 text-zinc-700 hover:bg-black/3 dark:text-zinc-300 dark:hover:bg-white/10"
+              >
+              Contests
+             </Link>
+
+             <Link
+             href="/rating"
+             className="rounded-full px-3 py-2 text-zinc-700 hover:bg-black/3 dark:text-zinc-300 dark:hover:bg-white/10"
+             >
+             Rating
+             </Link>
+
             </div>
           </div>
         </header>
