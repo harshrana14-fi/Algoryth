@@ -134,8 +134,10 @@ export default function ProblemWorkspace({ problem, onNext, onPrev }) {
           initialCode={code || starterCode}
           onChange={setCode}
           onLanguageChange={setLanguage}
-          onRun={handleRun}        // ✅ added
-          onSubmit={handleSubmit}  // ✅ added
+          onRun={handleRun}
+          onSubmit={handleSubmit}
+          isRunning={isRunning}
+          isSubmitting={isSubmitting}
         />
       }
       secondary={
